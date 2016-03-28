@@ -1,0 +1,40 @@
+body{
+  background: white;
+  font-family: 'Open Sans';
+}
+
+h1{
+  text-align: center;
+}
+
+#indicator{
+  position: absolute;
+  display: block;
+  width: 2em;
+  height: 2em;
+  border-radius: 50%;
+  border: 1px solid red;
+  z-index: 10;
+}
+
+#containerOne{
+  height: 10em;
+  width: 10em;
+  background-color: pink;
+  display: block;
+  position: absolute;
+  text-align: center;
+  line-height: 10em;
+  left: 1em;
+}
+
+#containerTwo{
+  height: 10em;
+  width: 10em;
+  background-color: grey;
+  right: 1em;
+  display: block;
+  position: absolute;
+  text-align: center;
+  line-height: 10em;
+}
