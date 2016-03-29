@@ -1,8 +1,7 @@
 window.onload = function(){
-  var box = document.getElementById("containerOne");
-  var boxTwo = document.getElementById("containerTwo");
+  var menuItems = document.getElementsByClassName('menu-item');
   var handPositionIndicator = document.getElementById('indicator');
-  var boxLeft, pixelsLeft, boxTop, pixelsTop;
+  var menuItemSelected, handPositionIndicatorLeft, handPositionpixelsLeft;
 
   var controller = new Leap.Controller();
 
@@ -22,35 +21,26 @@ window.onload = function(){
       var hand = frame.hands[0];
       handPositionIndicator.setTransform(hand.screenPosition(), hand.roll);
 
-      boxLeft = box.style.left.toString();
-      pixelsLeft = boxLeft.substring(0, boxLeft.length - 2);
-      boxTop = box.style.top.toString();
-      pixelsTop = boxTop.substring(0, boxTop.length - 2);
+      handPositionIndicatorLeft = handPositionIndicator.style.left.toString();
+      handPositionpixelsLeft = handPositionIndicatorLeft.substring(0, handPositionIndicatorLeft.length - 2);
 
-      // if(handPositionIndicator.style.left > pixelsLeft && handPositionIndicator.style.left < (pixelsLeft + 200)){
-        // if(handPositionIndicator.style.top > pixelsTop && handPositionIndicator.style.top < (pixelsTop + 200)){
+      for(var i = 0; i < menuItems.length; i++){
+        if(handPositionpixelsLeft > (window.innerWidth - menuItems[i].getBoundingClientRect().width)){
           if(hand.grabStrength === 1){
-            box.setTransform(hand.screenPosition(), hand.roll);
+            console.log('here')
+            menuItemSelected = menuItems[i];
+            menuItemSelected.setTransform(hand.screenPosition(), hand.roll);
           }
-        // }
-      // }
-      if(frame.gestures.length > 0){
-        frame.gestures.forEach(function(gesture){
-          if(gesture.type === "keyTap"){
-            var hex = Math.floor(Math.random() * 0xFFFFFF);
-            boxTwo.style.backgroundColor = "#" + ("000000" + hex.toString(16)).substr(-6);
-          } else if(gesture.type === "screenTap"){
-            var hex = Math.floor(Math.random() * 0xFFFFFF);
-            boxTwo.style.backgroundColor = "#" + ("000000" + hex.toString(16)).substr(-6);
-          }
-        })
+        }
       }
     }
   }).use('screenPosition', {scale: 0.25});
 
-  box.setTransform = function(position){
-    box.style.left = position[0] - box.style.width  / 2 + 'px';
-    box.style.top  = position[1] - box.style.height / 2 + 'px';
+  if(menuItemSelected){
+    menuItemSelected.setTransform = function(position){
+      menuItemSelected.style.left = position[0] - menuItemSelected.style.width  / 2 + 'px';
+      menuItemSelected.style.top  = position[1] - menuItemSelected.style.height / 2 + 'px';
+    }
   }
 
   handPositionIndicator.setTransform = function(position){

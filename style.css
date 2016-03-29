@@ -25,6 +25,37 @@ h1{
   cursor: pointer;
 }
 
+#menu-bar{
+  display: block;
+  width: 10em;
+  position: absolute;
+  right: 0;
+  top: 5em;
+  margin: 0;
+  padding: 0;
+  /*border: 1px solid pink;*/
+}
+
+#menu-bar ul li {
+  display: block;
+  width: 7em;
+  height: 7em;
+  position: relative;
+  margin-bottom: 1em;
+  border: 1px solid white;
+}
+
+#menu-bar ul li.menu-item{
+  /*right: 10px;
+  width: 100px;*/
+}
+
+#menu-bar ul li img{
+  display: block;
+  width: 100%;
+  position: relative;
+}
+
 #indicator{
   position: absolute;
   display: block;
@@ -33,26 +64,4 @@ h1{
   border-radius: 50%;
   border: 1px solid red;
   z-index: 10;
-}
-
-#containerOne{
-  height: 10em;
-  width: 10em;
-  background-color: pink;
-  display: block;
-  position: absolute;
-  text-align: center;
-  line-height: 10em;
-  left: 1em;
-}
-
-#containerTwo{
-  height: 10em;
-  width: 10em;
-  background-color: grey;
-  right: 1em;
-  display: block;
-  position: absolute;
-  text-align: center;
-  line-height: 10em;
 }
