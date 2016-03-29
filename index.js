@@ -4,6 +4,19 @@ window.onload = function(){
   var handPositionIndicator = document.getElementById('indicator');
   var boxLeft, pixelsLeft, boxTop, pixelsTop;
 
+  var controller = new Leap.Controller();
+
+  if(!controller.deviceAttached){
+    console.log('Leap Motion not connected')
+    document.getElementById('status-alert').style.display = 'block';
+
+    document.getElementsByClassName('status-button')[0].onclick = function(){
+      document.getElementById('status-alert').style.display = 'none';
+    }
+  }
+
+  controller.connect();
+
   Leap.loop(function(frame){
     if(frame.hands.length > 0){
       var hand = frame.hands[0];

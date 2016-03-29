@@ -7,6 +7,21 @@ h1{
   text-align: center;
 }
 
+#status-alert{
+  display: none;
+  position: absolute;
+  background-color: lightgrey;
+  padding: 1em;
+  left: 30%;
+}
+
+#status-alert .status-button{
+  background: white;
+  width: auto;
+  text-align: center;
+  cursor: pointer;
+}
+
 #indicator{
   position: absolute;
   display: block;
