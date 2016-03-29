@@ -1,10 +1,12 @@
 body{
   background: white;
   font-family: 'Open Sans';
+  background-color: black;
 }
 
 h1{
   text-align: center;
+  color: white;
 }
 
 #status-alert{
@@ -12,11 +14,12 @@ h1{
   position: absolute;
   background-color: lightgrey;
   padding: 1em;
-  left: 30%;
+  left: 40%;
+  color: white;
 }
 
 #status-alert .status-button{
-  background: white;
+  border: 1px solid white;
   width: auto;
   text-align: center;
   cursor: pointer;
