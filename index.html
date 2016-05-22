@@ -4,13 +4,15 @@
 	</head>
 	<body>
 		<link rel='stylesheet', href='style.css' >
+    <link href='https://fonts.googleapis.com/css?family=Orbitron:400,500,700,900' rel='stylesheet' type='text/css'>
 		<script src="https://rawgithub.com/mrdoob/three.js/master/build/three.js"></script>
 		<script src="http://js.leapmotion.com/0.2.0/leap.min.js"></script>
 		<script src="https://code.jquery.com/jquery-2.1.0.min.js"?></script>
 
     <h1>Touch Every Screen</h1>
     <div id="container">
-      <div id="circle2">Tap to start</div>
+      <div id="time"></div>
+      <div id="circle2"><p>Tap to start</p></div>
     </div>
 
 		<!-- <svg id="myCanvas" width="1000" height="400"> -->
@@ -320,21 +322,25 @@
 
         var canvas = document.getElementById('container');
 
+        var time = new Date();
+        var timeContainer = document.getElementById('time');
+        timeContainer.innerHTML = time.getHours() + ':' + time.getMinutes();
+
         canvas.onclick = function(){
           displayMenu()
         }
 			});
 
-      var r = 40;
+      var r = 100;
       var open = false;
       var displayMenu = function(){
         if(open === true){
           var shrinkingMenu = setInterval(function(){
-            if(r > 40){
+            if(r > 100){
               mainButton[0].style.width = r;
               mainButton[0].style.height = r;
-              r -= 1;
-            } else if(r === 40){
+              r -= 5;
+            } else if(r === 100){
               window.clearInterval(shrinkingMenu);
             }
           }, 10)
@@ -343,12 +349,13 @@
         }
 
         if(open === false){
+          mainButton[0].innerHTML = ''
           var growingMenu = setInterval(function(){
-            if(r < 100){
+            if(r < 200){
               mainButton[0].style.width = r;
               mainButton[0].style.height = r;
-              r += 1;
-            } else if(r === 100){
+              r += 5;
+            } else if(r === 200){
               window.clearInterval(growingMenu);
             }
           }, 10);
