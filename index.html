@@ -1,25 +1,461 @@
-<!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="utf-8">
-    <link rel="stylesheet" href="/style.css" media="screen" title="no title" charset="utf-8">
-    <title>Prototype Motion Control UI with Leap Motion</title>
-  </head>
-  <body>
-    <h1>Prototype Gesture Controlled UI</h1>
-    <div id="status-alert">
-      <p>Leap Motion not connected</p>
-      <div class="status-button">Dismiss</div>
-    </div>
-    <div id="menu-bar">
-      <ul>
-        <li class="menu-item"><img src="http://icon-park.com/imagefiles/simple_weather_icons_snow.png"></li>
-        <li class="menu-item"><img src="http://www.felipenasr.com/EN/images/icon-twitter-white-1.png"></li>
-      </ul>
-    </div>
-    <div id="indicator"></div>
-    <script src="http://js.leapmotion.com/leap-0.6.3.min.js"></script>
-    <script src="http://js.leapmotion.com/leap-plugins-0.1.8.js"></script>
-    <script type="text/javascript" src="index.js"></script>
-  </body>
+	<head>
+		<title>Prototype Leap UI - Charlie Gerard</title>
+	</head>
+	<body>
+		<link rel='stylesheet', href='style.css' >
+		<script src="https://rawgithub.com/mrdoob/three.js/master/build/three.js"></script>
+		<script src="http://js.leapmotion.com/0.2.0/leap.min.js"></script>
+		<script src="https://code.jquery.com/jquery-2.1.0.min.js"?></script>
+
+    <h1>Touch Every Screen</h1>
+
+		<svg id="myCanvas" width="1000" height="400">
+			<!-- <circle id="circle" cx="50" cy="50" r="40" stroke="black" stroke-width="3" fill="red"/> -->
+      <circle id="circle2" cx="500" cy="200" r="40" stroke="black" stroke-width="3" fill="blue"/>
+      <circle id="circle3" cx="150" cy="150" r="10" stroke="black" stroke-width="3" fill="yellow"/>
+		</svg>
+		<div id="main">
+			<button id="touch-top-left"> Touching top left </button>
+			<button id="touch-top-right"> Touching top right </button>
+			<button id="touch-bottom-left"> Touching bottom left </button>
+			<button id="touch-bottom-right"> Touching bottom right </button>
+			<p></p>
+			<button id="create-plane" > create plane </button>
+			<p></p>
+			<button id="pause" onclick="togglePause()">Pause</button>
+			<input type="checkbox" id="pauseOnGesture" onclick="pauseForGestures()">Pause on gesture</input>
+			<h3>Frame data:</h3>
+			<div id="frameData"></div>
+			<div style="clear:both;"></div>
+			<h3>Hand data:</h3>
+			<div id="handData"></div>
+			<div style="clear:both;"></div>
+			<h3>Finger and tool data:</h3>
+			<div id="pointableData"></div>
+			<div style="clear:both;"></div>
+			<h3>Gesture data:</h3>
+			<div id="gestureData"></div>
+		</div>
+
+
+		<script>
+			// Store frame for motion functions
+			var previousFrame = null;
+			var paused = false;
+			var pauseOnGesture = false;
+			var positions = {
+				topLeft : undefined,
+				topRight: undefined,
+				bottomLeft: undefined,
+				bottomRight: undefined
+			};
+
+			var intersectionPoint;
+			var relativeTouchPoint;
+
+      var mainButton;
+      // var indicator = document.getElementById('circle2');
+
+			var globalFrame;
+			var plane;
+			var fingerLineSegment;
+			// var circle;
+
+			// Setup Leap loop with frame callback function
+			var controllerOptions = {enableGestures: true};
+
+			Leap.loop(controllerOptions, function(frame) {
+			  if (paused) {
+			    return; // Skip this update
+			  }
+
+		    globalFrame = frame;
+
+			  // Display Frame object data
+			  var frameOutput = document.getElementById("frameData");
+
+			  var frameString = "Hands: " + frame.hands.length + "<br />"
+			                  + "Fingers: " + frame.fingers.length + "<br />"
+			                  + "Tools: " + frame.tools.length + "<br />"
+			                  + "Gestures: " + frame.gestures.length + "<br />";
+
+			  // Frame motion factors
+			  if (previousFrame && previousFrame.valid) {
+			    var translation = frame.translation(previousFrame);
+			    frameString += "Translation: " + vectorToString(translation) + " mm <br />";
+
+			    var rotationAxis = frame.rotationAxis(previousFrame);
+			    var rotationAngle = frame.rotationAngle(previousFrame);
+			    frameString += "Rotation axis: " + vectorToString(rotationAxis, 2) + "<br />";
+			    frameString += "Rotation angle: " + rotationAngle.toFixed(2) + " radians<br />";
+
+			    var scaleFactor = frame.scaleFactor(previousFrame);
+			    frameString += "Scale factor: " + scaleFactor.toFixed(2) + "<br />";
+			  }
+			  frameOutput.innerHTML = "<div style='width:300px; float:left; padding:5px'>" + frameString + "</div>";
+
+			  // Display Hand object data
+			  var handOutput = document.getElementById("handData");
+			  var handString = "";
+			  if (frame.hands.length > 0) {
+			    for (var i = 0; i < frame.hands.length; i++) {
+			      var hand = frame.hands[i];
+
+			      handString += "<div style='width:300px; float:left; padding:5px'>";
+			      handString += "Hand ID: " + hand.id + "<br />";
+			      handString += "Direction: " + vectorToString(hand.direction, 2) + "<br />";
+			      handString += "Palm normal: " + vectorToString(hand.palmNormal, 2) + "<br />";
+			      handString += "Palm position: " + vectorToString(hand.palmPosition) + " mm<br />";
+			      handString += "Palm velocity: " + vectorToString(hand.palmVelocity) + " mm/s<br />";
+			      handString += "Sphere center: " + vectorToString(hand.sphereCenter) + " mm<br />";
+			      handString += "Sphere radius: " + hand.sphereRadius.toFixed(1) + " mm<br />";
+
+			      // Hand motion factors
+			      if (previousFrame && previousFrame.valid) {
+			        var translation = hand.translation(previousFrame);
+			        handString += "Translation: " + vectorToString(translation) + " mm<br />";
+
+			        var rotationAxis = hand.rotationAxis(previousFrame, 2);
+			        var rotationAngle = hand.rotationAngle(previousFrame);
+			        handString += "Rotation axis: " + vectorToString(rotationAxis) + "<br />";
+			        handString += "Rotation angle: " + rotationAngle.toFixed(2) + " radians<br />";
+
+			        var scaleFactor = hand.scaleFactor(previousFrame);
+			        handString += "Scale factor: " + scaleFactor.toFixed(2) + "<br />";
+			      }
+
+			      // IDs of pointables (fingers and tools) associated with this hand
+			      if (hand.pointables.length > 0) {
+			      	fingerVector = getFingerLineSegment(hand.pointables[0]);
+			      	if(plane){
+			      		if(plane.isIntersectionLine(fingerLineSegment)){
+			      			intersectionPoint = plane.intersectLine(fingerLineSegment);
+			      			relativeTouchPoint = {
+			      				x : (intersectionPoint.x - positions.topLeft.x) / (positions.topRight.x - positions.topLeft.x),
+			      				y : 1  - ( (intersectionPoint.y - positions.bottomLeft.y) / (positions.topLeft.y - positions.bottomLeft.y))
+			      			};
+
+			      			console.log("finger is touching plane at: ");
+			      			console.log( relativeTouchPoint  );
+
+			      			// circle.attr("cx",relativeTouchPoint.x * 1000);
+			      			// circle.attr("cy",relativeTouchPoint.y * 400);
+
+                  circle3.attr("cx",relativeTouchPoint.x * 1000);
+                  circle3.attr("cy",relativeTouchPoint.y * 400);
+
+                  if((relativeTouchPoint.x * 1000) > mainButton.attr('cx') &&
+                      (relativeTouchPoint.x * 1000) < (mainButton.attr('cx') + mainButton.attr('r')) &&
+                     (relativeTouchPoint.y * 400) > mainButton.attr('cy') &&
+                     (relativeTouchPoint.y * 400) < (mainButton.attr('cy') + mainButton.attr('r'))){
+                      displayMenu();
+                   }
+
+			      		} else {
+                  // console.log('boo')
+                }
+			      	}
+			        var fingerIds = [];
+			        var toolIds = [];
+			        for (var j = 0; j < hand.pointables.length; j++) {
+			          var pointable = hand.pointables[j];
+			          if (pointable.tool) {
+			            toolIds.push(pointable.id);
+			          }
+			          else {
+			            fingerIds.push(pointable.id);
+			          }
+			        }
+			        if (fingerIds.length > 0) {
+			          handString += "Fingers IDs: " + fingerIds.join(", ") + "<br />";
+			        }
+			        if (toolIds.length > 0) {
+			          handString += "Tools IDs: " + toolIds.join(", ") + "<br />";
+			        }
+			      }
+
+			      handString += "</div>";
+			    }
+			  }
+			  else {
+			    handString += "No hands";
+			  }
+			  handOutput.innerHTML = handString;
+
+			  // Display Pointable (finger and tool) object data
+			  var pointableOutput = document.getElementById("pointableData");
+			  var pointableString = "";
+			  if (frame.pointables.length > 0) {
+			    for (var i = 0; i < frame.pointables.length; i++) {
+			      var pointable = frame.pointables[i];
+
+			      pointableString += "<div style='width:250px; float:left; padding:5px'>";
+			      pointableString += "Pointable ID: " + pointable.id + "<br />";
+			      pointableString += "Belongs to hand with ID: " + pointable.handId + "<br />";
+
+			      if (pointable.tool) {
+			        pointableString += "Classified as a tool <br />";
+			        pointableString += "Length: " + pointable.length.toFixed(1) + " mm<br />";
+			        pointableString += "Width: "  + pointable.width.toFixed(1) + " mm<br />";
+			      }
+			      else {
+			        pointableString += "Classified as a finger<br />";
+			        pointableString += "Length: " + pointable.length.toFixed(1) + " mm<br />";
+			      }
+
+			      pointableString += "Direction: " + vectorToString(pointable.direction, 2) + "<br />";
+			      pointableString += "Tip position: " + vectorToString(pointable.tipPosition) + " mm<br />";
+			      pointableString += "Tip velocity: " + vectorToString(pointable.tipVelocity) + " mm/s<br />";
+
+			      pointableString += "</div>";
+			    }
+			  }
+			  else {
+			    pointableString += "<div>No pointables</div>";
+			  }
+			  pointableOutput.innerHTML = pointableString;
+
+			  // Display Gesture object data
+			  var gestureOutput = document.getElementById("gestureData");
+			  var gestureString = "";
+			  if (frame.gestures.length > 0) {
+			    if (pauseOnGesture) {
+			      togglePause();
+			    }
+			    for (var i = 0; i < frame.gestures.length; i++) {
+			      var gesture = frame.gestures[i];
+			      gestureString += "Gesture ID: " + gesture.id + ", "
+			                    + "type: " + gesture.type + ", "
+			                    + "state: " + gesture.state + ", "
+			                    + "hand IDs: " + gesture.handIds.join(", ") + ", "
+			                    + "pointable IDs: " + gesture.pointableIds.join(", ") + ", "
+			                    + "duration: " + gesture.duration + " &micro;s, ";
+
+			      switch (gesture.type) {
+			        case "circle":
+			          gestureString += "center: " + vectorToString(gesture.center) + " mm, "
+			                        + "normal: " + vectorToString(gesture.normal, 2) + ", "
+			                        + "radius: " + gesture.radius.toFixed(1) + " mm, "
+			                        + "progress: " + gesture.progress.toFixed(2) + " rotations";
+			          break;
+			        case "swipe":
+			          gestureString += "start position: " + vectorToString(gesture.startPosition) + " mm, "
+			                        + "current position: " + vectorToString(gesture.position) + " mm, "
+			                        + "direction: " + vectorToString(gesture.direction, 2) + ", "
+			                        + "speed: " + gesture.speed.toFixed(1) + " mm/s";
+			          break;
+			        case "screenTap":
+			        case "keyTap":
+			          gestureString += "position: " + vectorToString(gesture.position) + " mm, "
+			                        + "direction: " + vectorToString(gesture.direction, 2);
+			          break;
+			        default:
+			          gestureString += "unkown gesture type";
+			      }
+			      gestureString += "<br />";
+			    }
+			  }
+			  else {
+			    gestureString += "No gestures";
+			  }
+			  gestureOutput.innerHTML = gestureString;
+
+			  // Store frame for motion functions
+			  previousFrame = frame;
+			})
+
+			function vectorToString(vector, digits) {
+			  if (typeof digits === "undefined") {
+			    digits = 1;
+			  }
+			  return "(" + vector[0].toFixed(digits) + ", "
+			             + vector[1].toFixed(digits) + ", "
+			             + vector[2].toFixed(digits) + ")";
+			}
+
+			function togglePause() {
+			  paused = !paused;
+
+			  if (paused) {
+			    document.getElementById("pause").innerText = "Resume";
+			  } else {
+			    document.getElementById("pause").innerText = "Pause";
+			  }
+			}
+
+			function pauseForGestures() {
+			  if (document.getElementById("pauseOnGesture").checked) {
+			    pauseOnGesture = true;
+			  } else {
+			    pauseOnGesture = false;
+			  }
+			}
+
+			/*function writeMessage(canvas, message) {
+				var context = canvas.getContext('2d');
+				context.clearRect(0, 0, canvas.width, canvas.height);
+				context.font = '18pt Calibri';
+				context.fillStyle = 'black';
+				context.fillText(message, 10, 25);
+			}*/
+
+			function getMousePos(canvas, evt) {
+			  var rect = canvas.getBoundingClientRect();
+
+			  return {
+			    x: evt.clientX - rect.left,
+			    y: evt.clientY - rect.top
+			  };
+			}
+
+			$(document).ready(function(){
+			  assignButtons();
+			  // circle = $("#circle");
+        mainButton = $("#circle2");
+        circle3 = $('#circle3');
+
+        var canvas = document.getElementById('myCanvas');
+
+        // canvas.onclick = function(){
+        //   displayMenu()
+        // }
+			});
+
+      var r = 40;
+      var open = false;
+      var displayMenu = function(){
+        if(open === true){
+          var shrinkingMenu = setInterval(function(){
+            if(r > 40){
+              mainButton.attr("r", r);
+              r -= 1;
+            } else if(r === 40){
+              window.clearInterval(shrinkingMenu);
+            }
+          }, 10)
+          open = false;
+          return;
+        }
+
+        if(open === false){
+          var growingMenu = setInterval(function(){
+            if(r < 100){
+              mainButton.attr("r", r);
+              r += 1;
+            } else if(r === 100){
+              window.clearInterval(growingMenu);
+            }
+          }, 10);
+          open = true;
+          return;
+        }
+      }
+
+			function assignButtons(){
+			  $("#touch-top-left").click(function(){
+			    positions.topLeft = {
+			      x : globalFrame.pointables[0].tipPosition[0],
+			      y : globalFrame.pointables[0].tipPosition[1],
+			      z : globalFrame.pointables[0].tipPosition[2]
+			    }
+			  console.log("positions.topLeft: ");
+			  console.log(positions.topLeft);
+			  });
+
+
+			  $("#touch-top-right").click(function(){
+			    positions.topRight = {
+			      x : globalFrame.pointables[0].tipPosition[0],
+			      y : globalFrame.pointables[0].tipPosition[1],
+			      z : globalFrame.pointables[0].tipPosition[2]
+			    }
+			  console.log("positions.topRight: ");
+			  console.log(positions.topRight);
+			  });
+
+			  $("#touch-bottom-left").click(function(){
+			    positions.bottomLeft = {
+			      x : globalFrame.pointables[0].tipPosition[0],
+			      y : globalFrame.pointables[0].tipPosition[1],
+			      z : globalFrame.pointables[0].tipPosition[2]
+			    }
+			  console.log("positions.bottomLeft: ");
+			  console.log(positions.bottomLeft);
+			  });
+
+			  $("#touch-bottom-right").click(function(){
+			    positions.bottomRight = {
+			      x : globalFrame.pointables[0].tipPosition[0],
+			      y : globalFrame.pointables[0].tipPosition[1],
+			      z : globalFrame.pointables[0].tipPosition[2]
+			    }
+			  console.log("positions.bottomRight: ");
+			  console.log(positions.bottomRight);
+			  });
+
+			  $("#create-plane").click(function(){
+			    createPlane();
+			    console.log("plane: ");
+			    console.log(plane);
+			  });
+
+			}
+
+			function createPlane(){
+			  var vectorCoords1 = {
+			    x: positions.topRight.x - positions.topLeft.x,
+			    y: positions.topRight.y - positions.topLeft.y,
+			    z: positions.topRight.z - positions.topLeft.z
+			  };
+
+			  var vectorCoords2 = {
+			    x: positions.topLeft.x - positions.bottomLeft.x,
+			    y: positions.topLeft.y - positions.bottomLeft.y,
+			    z: positions.topLeft.z - positions.bottomLeft.z
+			  };
+
+
+			  var v1 = new THREE.Vector3(vectorCoords1.x, vectorCoords1.y, vectorCoords1.z);
+			  var v2 = new THREE.Vector3(vectorCoords2.x, vectorCoords2.y, vectorCoords2.z);
+
+			  var normalVector = new THREE.Vector3();
+
+			  normalVector.crossVectors(v1,v2);
+
+			  console.log("normal vector");
+			  console.log(normalVector);
+
+			  var position1 = new THREE.Vector3(positions.topRight.x, positions.topRight.y, positions.topRight.z);
+
+			  plane = new THREE.Plane();
+
+			  plane.setFromNormalAndCoplanarPoint(normalVector, position1);
+
+			  console.log("plane: ");
+			  console.log(plane);
+			}
+
+			function getFingerLineSegment(pointable){
+				var length = 20;
+				var start = new THREE.Vector3(
+					pointable.tipPosition[0] - length * pointable.direction[0],
+					pointable.tipPosition[1] - length * pointable.direction[1],
+					pointable.tipPosition[2] - length * pointable.direction[2]
+				);
+
+				var end = new THREE.Vector3(
+					pointable.tipPosition[0] + length * pointable.direction[0],
+					pointable.tipPosition[1] + length * pointable.direction[1],
+					pointable.tipPosition[2] + length * pointable.direction[2]
+				);
+
+				fingerLineSegment = new THREE.Line3(start, end);
+				//console.log(fingerLineSegment);
+				return fingerLineSegment;
+			}
+
+		</script>
+
+	</body>
 </html>
