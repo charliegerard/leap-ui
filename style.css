@@ -8,6 +8,28 @@
 	top: 100px;
 }
 
+#container{
+	width: 1000px;
+	height: 400px;
+	border: 2px;
+	border-color: black;
+	border-style: solid;
+	position: absolute;
+	right:0;
+	margin-right: 20px;
+	top: 100px;
+}
+
+#circle2{
+	width: 40px;
+	top: 200px;
+	left: 500px;
+	position: absolute;
+	height: 40px;
+	background: lightgrey;
+	border: 3px solid black;
+	border-radius: 50%;
+}
 
 #circle3{
 	display: none;

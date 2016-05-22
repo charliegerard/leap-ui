@@ -9,12 +9,15 @@
 		<script src="https://code.jquery.com/jquery-2.1.0.min.js"?></script>
 
     <h1>Touch Every Screen</h1>
+    <div id="container">
+      <div id="circle2">Tap to start</div>
+    </div>
 
-		<svg id="myCanvas" width="1000" height="400">
+		<!-- <svg id="myCanvas" width="1000" height="400"> -->
 			<!-- <circle id="circle" cx="50" cy="50" r="40" stroke="black" stroke-width="3" fill="red"/> -->
-      <circle id="circle2" cx="500" cy="200" r="40" stroke="black" stroke-width="3" fill="blue"/>
-      <circle id="circle3" cx="150" cy="150" r="10" stroke="black" stroke-width="3" fill="yellow"/>
-		</svg>
+      <!-- <circle id="circle2" cx="500" cy="200" r="40" stroke="black" stroke-width="3" fill="blue"/> -->
+      <!-- <circle id="circle3" cx="150" cy="150" r="10" stroke="black" stroke-width="3" fill="yellow"/> -->
+		<!-- </svg> -->
 		<div id="main">
 			<button id="touch-top-left"> Touching top left </button>
 			<button id="touch-top-right"> Touching top right </button>
@@ -315,11 +318,11 @@
         mainButton = $("#circle2");
         circle3 = $('#circle3');
 
-        var canvas = document.getElementById('myCanvas');
+        var canvas = document.getElementById('container');
 
-        // canvas.onclick = function(){
-        //   displayMenu()
-        // }
+        canvas.onclick = function(){
+          displayMenu()
+        }
 			});
 
       var r = 40;
@@ -328,7 +331,8 @@
         if(open === true){
           var shrinkingMenu = setInterval(function(){
             if(r > 40){
-              mainButton.attr("r", r);
+              mainButton[0].style.width = r;
+              mainButton[0].style.height = r;
               r -= 1;
             } else if(r === 40){
               window.clearInterval(shrinkingMenu);
@@ -341,7 +345,8 @@
         if(open === false){
           var growingMenu = setInterval(function(){
             if(r < 100){
-              mainButton.attr("r", r);
+              mainButton[0].style.width = r;
+              mainButton[0].style.height = r;
               r += 1;
             } else if(r === 100){
               window.clearInterval(growingMenu);
