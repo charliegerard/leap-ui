@@ -11,6 +11,7 @@
 
     <h1>Touch Every Screen</h1>
     <div id="container">
+      <div id="calibration"></div>
       <div id="time"></div>
       <div id="circle2"><p>Tap to start</p></div>
     </div>
@@ -316,20 +317,23 @@
 
 			$(document).ready(function(){
 			  assignButtons();
-			  // circle = $("#circle");
         mainButton = $("#circle2");
         circle3 = $('#circle3');
 
         var canvas = document.getElementById('container');
 
+        displayTime();
+
+        canvas.onclick = function(){
+          // displayMenu()
+        }
+			});
+
+      var displayTime = function(){
         var time = new Date();
         var timeContainer = document.getElementById('time');
         timeContainer.innerHTML = time.getHours() + ':' + time.getMinutes();
-
-        canvas.onclick = function(){
-          displayMenu()
-        }
-			});
+      }
 
       var r = 100;
       var open = false;
